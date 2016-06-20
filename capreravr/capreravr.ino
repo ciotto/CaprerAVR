@@ -46,14 +46,31 @@
  */
 
 #include <SoftwareSerial.h>
+#include <DFRobot_utility.h>
 #include <DFPlayer_Mini_Mp3.h>
 
 // costants
-const int buzzPin = 2;     // the number of the buzz button pin
+const int buzzPin = 2;       // the number of the buzz button pin
 const int ledPin =  13;      // the number of the buzz button LED pin
 
 // variables
 int buttonState = 0;         // variable for reading the buzz button status
+int tracks = 0;              // tracks in microSD
+
+int read_int () {
+        delay (100);
+        
+        long recv_leng = serialRead(Serial1, recv_buf, 10, 3);
+        if (recv_leng) {
+                int res = 0;
+                res = res * 256 + (unsigned char)recv_buf[4];
+                res = res * 256 + (unsigned char)recv_buf[5];
+                res = res * 256 + (unsigned char)recv_buf[6];
+
+                return res;
+        }
+        return -1;
+}
 
 void setup() {
   // initialize the LED pin as an output:
@@ -62,14 +79,25 @@ void setup() {
   pinMode(buzzPin, INPUT);
 
   // Init serial
-  Serial.begin(9600);
+  Serial1.begin (9600);
+  Serial.begin (9600);
+  while (!Serial);
 
   // Set Serial for DFPlayer-mini mp3 module
-  mp3_set_serial(Serial);
+  mp3_set_serial(Serial1);
   // Wait 1ms
   delay(1);
   // Set volume (value 0~30)
-  mp3_set_volume(15);
+  mp3_set_volume(27);
+  // Set device to microSD
+  mp3_set_device(2);
+  // Query the total number of microSD card files
+  mp3_get_tf_sum();
+  tracks = read_int();
+
+  Serial.print('Find ');
+  Serial.print(tracks);
+  Serial.println(' tracks.');
 }
 
 void loop() {
@@ -77,10 +105,12 @@ void loop() {
   buttonState = digitalRead(buzzPin);
 
   // check if the buzz button is pressed.
-  // if it is, the buttonState is HIGH:
+  // if it is, the buttonState is HIGH (antibounce hardware):
   if (buttonState == HIGH) {
     // turn LED on:
     digitalWrite(ledPin, HIGH);
+
+    mp3_play(random(1, tracks + 1));
   } else {
     // turn LED off:
     digitalWrite(ledPin, LOW);

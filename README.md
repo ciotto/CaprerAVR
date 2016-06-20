@@ -20,3 +20,4 @@
 
  - [DFR0299 datasheet](http://www.picaxe.com/docs/spe033.pdf)
  - [DFR0299 doc](http://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299)
+ - [DFRobot utility library](https://github.com/DFRobot/DFRobot_utility/archive/master.zip)
