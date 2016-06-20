@@ -1,5 +1,5 @@
 /*
-  CapreraVR
+  CaprerAVR
 
   Play a random mp3 sample in a DFR0299 microSD card slot.
   
@@ -42,7 +42,7 @@
       void mp3_DAC (boolean state); 
       void mp3_random_play (); 
  
- https://github.com/ciotto/CapreraVR
+ https://github.com/ciotto/CaprerAVR
  */
 
 #include <SoftwareSerial.h>
