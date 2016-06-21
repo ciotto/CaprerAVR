@@ -1,5 +1,7 @@
 # CaprerAVR
 
+![CaprerAVR](fritzing/capreravr_bb.png)
+
 **CaprerAVR** is a crazy project for office survival, when you are in difficult, push the buzz button and **CaprerAVR** helps you!!
 
 ![Viva la merda](http://www.serialminds.com/wp-content/uploads/2016/03/viva-la-merda.gif)
