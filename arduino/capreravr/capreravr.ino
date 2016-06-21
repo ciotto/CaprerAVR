@@ -95,9 +95,9 @@ void setup() {
   mp3_get_tf_sum();
   tracks = read_int();
 
-  Serial.print('Find ');
+  Serial.print("Find ");
   Serial.print(tracks);
-  Serial.println(' tracks.');
+  Serial.println(" tracks.");
 }
 
 void loop() {
