@@ -56,6 +56,7 @@ const int BUTTON3 = B0100;
 const int BUTTON4 = B1000;
 
 const int buttonsCount = 4;                               // the number of the buzz button
+const int busyPin = 6;                                    // Arduino pin wired to DFR0299 16 pin
 const int buttonsPin[buttonsCount] = {2, 3, 4, 5};        // the number of the buzz buttons pin
 const int ledsPin[buttonsCount] = {13, 8, 9, 10};       // the number of the buzz buttons LED pin
 
@@ -116,30 +117,61 @@ void setup() {
 }
 
 void loop() {
+  int busyState = digitalRead(busyPin);
+  
   buttonsState = 0;
   for (int i=0; i < buttonsCount; i++) {
     // read the state of the buzz button value:
     int state = digitalRead(buttonsPin[i]);
     buttonsState = buttonsState | (state << i);
   }
-  
-  if (buttonsState == BUTTON1) {
-    // Button 1 pressed
-  } else if (buttonsState == BUTTON2) {
-    // Button 2 pressed
-  } else if (buttonsState == BUTTON3) {
-    // Button 3 pressed
-  } else if (buttonsState == BUTTON4) {
-    // Button 4 pressed
-  } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
-    // All buttons pressed
-  } else {
-    // other
-  }
 
-  // play
-  mp3_play(random(1, tracks + 1));
-  set_leds(buttonsState);
+  // check if the a buzz buttons is pressed and DFR0299 is not buzy.
+  if (buttonsState > 0 && busyState == 1) {
+    Serial.println("Play");
+    
+    // turn LED on for button pressed:
+    for (int i=0; i < buttonsCount; i++) {
+      // turn LEDs on if related button pressed:
+      digitalWrite(ledsPin[i], (buttonsState & (1 << i)) >> i);
+    }
+
+    if (buttonsState == BUTTON1) {
+      // Button 1 pressed
+    } else if (buttonsState == BUTTON2) {
+      // Button 2 pressed
+    } else if (buttonsState == BUTTON3) {
+      // Button 3 pressed
+    } else if (buttonsState == BUTTON4) {
+      // Button 4 pressed
+    } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
+      // All buttons pressed
+    } else {
+      // other
+    }
+
+    // play
+    mp3_play(random(1, tracks + 1));
+    set_leds(buttonsState);
+
+    delay(200);
+  
+  // check if the a buzz buttons is pressed and DFR0299 is buzy.
+  } else if (buttonsState > 0) {
+    Serial.println("Stop");
+    
+    // stop
+    mp3_stop();
+    set_leds(0);
+
+    delay(200);
+
+  // check if the a buzz buttons is not pressed and DFR0299 is buzy.
+  } else if (busyState == 1) {
+    Serial.println("Off");
+    
+    set_leds(0);
+  }
 
   delay(100);
 }
