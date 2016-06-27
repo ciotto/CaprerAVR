@@ -50,11 +50,17 @@
 #include <DFPlayer_Mini_Mp3.h>
 
 // costants
-const int buzzPin = 2;       // the number of the buzz button pin
-const int ledPin =  13;      // the number of the buzz button LED pin
+const int BUTTON1 = B0001;
+const int BUTTON2 = B0010;
+const int BUTTON3 = B0100;
+const int BUTTON4 = B1000;
+
+const int buttonsCount = 4;                               // the number of the buzz button
+const int buttonsPin[buttonsCount] = {2, 3, 4, 5};        // the number of the buzz buttons pin
+const int ledsPin[buttonsCount] = {13, 8, 9, 10};       // the number of the buzz buttons LED pin
 
 // variables
-int buttonState = 0;         // variable for reading the buzz button status
+int buttonsState = 0;         // variable for reading the buzz button status
 int tracks = 0;              // tracks in microSD
 
 int read_int () {
@@ -72,12 +78,14 @@ int read_int () {
         return -1;
 }
 
-void setup() {
-  // initialize the LED pin as an output:
-  pinMode(ledPin, OUTPUT);
-  // initialize the buzz button pin as an input:
-  pinMode(buzzPin, INPUT);
+int set_leds (int state) {
+    for (int i=0; i < buttonsCount; i++) {
+      // turn LEDs on if related button pressed:
+      digitalWrite(ledsPin[i], (state & (1 << i)) >> i);
+    }
+}
 
+void setup() {
   // Init serial
   Serial1.begin (9600);
   Serial.begin (9600);
@@ -88,31 +96,50 @@ void setup() {
   // Wait 1ms
   delay(1);
   // Set volume (value 0~30)
-  mp3_set_volume(27);
+  mp3_set_volume(20);
   // Set device to microSD
   mp3_set_device(2);
+  
+  for (int i=0; i < buttonsCount; i++) {
+    // initialize the LED pin as an output:
+    pinMode(ledsPin[i], OUTPUT);
+    // initialize the buzz button pin as an input:
+    pinMode(buttonsPin[i], INPUT);
+  }
+    
   // Query the total number of microSD card files
   mp3_get_tf_sum();
   tracks = read_int();
-
   Serial.print("Find ");
   Serial.print(tracks);
   Serial.println(" tracks.");
 }
 
 void loop() {
-  // read the state of the buzz button value:
-  buttonState = digitalRead(buzzPin);
-
-  // check if the buzz button is pressed.
-  // if it is, the buttonState is HIGH (antibounce hardware):
-  if (buttonState == HIGH) {
-    // turn LED on:
-    digitalWrite(ledPin, HIGH);
-
-    mp3_play(random(1, tracks + 1));
-  } else {
-    // turn LED off:
-    digitalWrite(ledPin, LOW);
+  buttonsState = 0;
+  for (int i=0; i < buttonsCount; i++) {
+    // read the state of the buzz button value:
+    int state = digitalRead(buttonsPin[i]);
+    buttonsState = buttonsState | (state << i);
   }
+  
+  if (buttonsState == BUTTON1) {
+    // Button 1 pressed
+  } else if (buttonsState == BUTTON2) {
+    // Button 2 pressed
+  } else if (buttonsState == BUTTON3) {
+    // Button 3 pressed
+  } else if (buttonsState == BUTTON4) {
+    // Button 4 pressed
+  } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
+    // All buttons pressed
+  } else {
+    // other
+  }
+
+  // play
+  mp3_play(random(1, tracks + 1));
+  set_leds(buttonsState);
+
+  delay(100);
 }
