@@ -114,6 +114,11 @@ void setup() {
   Serial.print("Find ");
   Serial.print(tracks);
   Serial.println(" tracks.");
+
+  // Blink LEDs
+  set_leds(B1111);
+  delay(100);
+  set_leds(B0000);
 }
 
 void loop() {
