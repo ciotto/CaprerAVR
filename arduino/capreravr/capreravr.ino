@@ -85,7 +85,7 @@ void setup() {
   // Set Serial for DFPlayer-mini mp3 module
   mp3_set_serial(Serial1);
   // Set volume (value 0~30)
-  mp3_set_volume(20);
+  mp3_set_volume(volume);
   // Set device to microSD
   mp3_set_device(2);
   
@@ -135,28 +135,53 @@ void loop() {
     }
 
     if (buttonsState == BUTTON1) {
-    Serial.print("Play ");
-    Serial.print(buttonsState);
+      Serial.print("Play folder 1");
       
       // Button 1 pressed
       mp3_play_file_in_folder(1, random(1, tracks[0] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON2) {
+      Serial.print("Play folder 2");
+      
       // Button 2 pressed
       mp3_play_file_in_folder(2, random(1, tracks[1] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON3) {
+      Serial.print("Play folder 3");
+      
       // Button 3 pressed
       mp3_play_file_in_folder(3, random(1, tracks[2] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON4) {
+      Serial.print("Play folder 4");
+      
       // Button 4 pressed
       mp3_play_file_in_folder(4, random(1, tracks[3] + 1));
 
       delay(200);
+    } else if (buttonsState == BUTTON1 + BUTTON3 + BUTTON2) {
+      if (volume < 30) {
+        volume++;
+      }
+
+      Serial.print("Set volume to ");
+      Serial.println(volume);
+      
+      // Set volume (value 0~30)
+      mp3_set_volume(volume);
+    } else if (buttonsState == BUTTON1 + BUTTON3 + BUTTON4) {
+      if (volume > 0) {
+        volume--;
+      }
+
+      Serial.print("Set volume to ");
+      Serial.println(volume);
+      
+      // Set volume (value 0~30)
+      mp3_set_volume(volume);
     } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
       // All buttons pressed
     } else {
