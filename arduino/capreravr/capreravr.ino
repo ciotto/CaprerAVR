@@ -46,7 +46,6 @@
  */
 
 #include <SoftwareSerial.h>
-#include <DFRobot_utility.h>
 #include <DFPlayer_Mini_Mp3.h>
 
 // costants
@@ -62,27 +61,18 @@ const int ledsPin[buttonsCount] = {13, 8, 9, 10};       // the number of the buz
 
 // variables
 int buttonsState = 0;         // variable for reading the buzz button status
-int tracks = 0;              // tracks in microSD
-
-int read_int () {
-        delay (100);
-        
-        long recv_leng = serialRead(Serial1, recv_buf, 10, 3);
-        if (recv_leng) {
-                int res = 0;
-                res = res * 256 + (unsigned char)recv_buf[4];
-                res = res * 256 + (unsigned char)recv_buf[5];
-                res = res * 256 + (unsigned char)recv_buf[6];
-
-                return res;
-        }
-        return -1;
-}
+int ledsState = 0;         // variable for storing the LEDs status
+int tracks[buttonsCount] = {0, 0, 0, 0};              // tracks in microSD
+int volume = 20;              // the volume level
 
 int set_leds (int state) {
-    for (int i=0; i < buttonsCount; i++) {
-      // turn LEDs on if related button pressed:
-      digitalWrite(ledsPin[i], (state & (1 << i)) >> i);
+    if (ledsState != state) {
+      ledsState = state;
+      
+      for (int i=0; i < buttonsCount; i++) {
+        // turn LEDs on if related button pressed:
+        digitalWrite(ledsPin[i], (state & (1 << i)) >> i);
+      }
     }
 }
 
@@ -94,8 +84,6 @@ void setup() {
 
   // Set Serial for DFPlayer-mini mp3 module
   mp3_set_serial(Serial1);
-  // Wait 1ms
-  delay(1);
   // Set volume (value 0~30)
   mp3_set_volume(20);
   // Set device to microSD
@@ -106,14 +94,21 @@ void setup() {
     pinMode(ledsPin[i], OUTPUT);
     // initialize the buzz button pin as an input:
     pinMode(buttonsPin[i], INPUT);
-  }
+
+    // TODO set folder
     
-  // Query the total number of microSD card files
-  mp3_get_tf_sum();
-  tracks = read_int();
-  Serial.print("Find ");
-  Serial.print(tracks);
-  Serial.println(" tracks.");
+    // Query the total number of microSD card files
+    //mp3_get_tf_sum();
+    //tracks[i] = mp3_wait_tf_sum();
+    mp3_get_folder_sum(i + 1);
+    tracks[i] = mp3_wait_folder_sum();
+
+    Serial.print("Find ");
+    Serial.print(tracks[i]);
+    Serial.print(" tracks in folder 0");
+    Serial.print(i);
+    Serial.println(".");
+  }
 
   // Blink LEDs
   set_leds(B1111);
@@ -133,8 +128,6 @@ void loop() {
 
   // check if the a buzz buttons is pressed and DFR0299 is not buzy.
   if (buttonsState > 0 && busyState == 1) {
-    Serial.println("Play");
-    
     // turn LED on for button pressed:
     for (int i=0; i < buttonsCount; i++) {
       // turn LEDs on if related button pressed:
@@ -142,13 +135,28 @@ void loop() {
     }
 
     if (buttonsState == BUTTON1) {
+    Serial.print("Play ");
+    Serial.print(buttonsState);
+      
       // Button 1 pressed
+      mp3_play_file_in_folder(1, random(1, tracks[0] + 1));
+
+      delay(200);
     } else if (buttonsState == BUTTON2) {
       // Button 2 pressed
+      mp3_play_file_in_folder(2, random(1, tracks[1] + 1));
+
+      delay(200);
     } else if (buttonsState == BUTTON3) {
       // Button 3 pressed
+      mp3_play_file_in_folder(3, random(1, tracks[2] + 1));
+
+      delay(200);
     } else if (buttonsState == BUTTON4) {
       // Button 4 pressed
+      mp3_play_file_in_folder(4, random(1, tracks[3] + 1));
+
+      delay(200);
     } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
       // All buttons pressed
     } else {
@@ -156,10 +164,7 @@ void loop() {
     }
 
     // play
-    mp3_play(random(1, tracks + 1));
     set_leds(buttonsState);
-
-    delay(200);
   
   // check if the a buzz buttons is pressed and DFR0299 is buzy.
   } else if (buttonsState > 0) {
@@ -173,8 +178,6 @@ void loop() {
 
   // check if the a buzz buttons is not pressed and DFR0299 is buzy.
   } else if (busyState == 1) {
-    Serial.println("Off");
-    
     set_leds(0);
   }
 
