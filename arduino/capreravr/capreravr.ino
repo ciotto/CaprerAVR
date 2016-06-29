@@ -57,7 +57,9 @@ const int BUTTON4 = B1000;
 const int buttonsCount = 4;                               // the number of the buzz button
 const int busyPin = 6;                                    // Arduino pin wired to DFR0299 16 pin
 const int buttonsPin[buttonsCount] = {2, 3, 4, 5};        // the number of the buzz buttons pin
-const int ledsPin[buttonsCount] = {13, 8, 9, 10};       // the number of the buzz buttons LED pin
+const int ledsPin[buttonsCount] = {13, 8, 9, 12};       // the number of the buzz buttons LED pin
+
+SoftwareSerial mp3Serial(10, 11);
 
 // variables
 int buttonsState = 0;         // variable for reading the buzz button status
@@ -78,12 +80,12 @@ int set_leds (int state) {
 
 void setup() {
   // Init serial
-  Serial1.begin (9600);
+  mp3Serial.begin (9600);
   Serial.begin (9600);
   while (!Serial);
 
   // Set Serial for DFPlayer-mini mp3 module
-  mp3_set_serial(Serial1);
+  mp3_set_serial(mp3Serial);
   // Set logging Serial
   mp3_set_debug_serial(Serial);
   // Set volume (value 0~30)
@@ -96,19 +98,15 @@ void setup() {
     pinMode(ledsPin[i], OUTPUT);
     // initialize the buzz button pin as an input:
     pinMode(buttonsPin[i], INPUT);
-
-    // TODO set folder
     
     // Query the total number of microSD card files
-    //mp3_get_tf_sum();
-    //tracks[i] = mp3_wait_tf_sum();
     mp3_get_folder_sum(i + 1);
     tracks[i] = mp3_wait_folder_sum();
 
     Serial.print("Find ");
     Serial.print(tracks[i]);
     Serial.print(" tracks in folder 0");
-    Serial.print(i);
+    Serial.print(i + 1);
     Serial.println(".");
   }
 

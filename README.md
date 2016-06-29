@@ -14,6 +14,7 @@
 
 ## What you need
 
+ - *1 x* [Arduino or compatible](http://www.aliexpress.com/item/UNO-R3-CH340G-ATmega328P-compatible-for-Arduino-UNO-R3/32523366108.html?spm=2114.01010208.3.132.ps5asV&ws_ab_test=searchweb201556_8,searchweb201602_5_10037_10017_405_507_10032,searchweb201603_11&btsid=4d84a66e-7b4c-4053-977e-ca0880699bd8)
  - *1 x* [DFR0299](http://it.aliexpress.com/item/1PCS-Mini-MP3-Player-Module-with-Simplified-Output-Speaker-for-Arduino-UNO/32271693515.html)
  - *4 x* [Buzz Button](http://it.aliexpress.com/item/1PC-LED-Light-60MM-Big-Round-Arcade-Video-Game-Player-Push-Button-Switch-Red-Plunger-Size/32645265359.html)
  - *1 x* microSD card
