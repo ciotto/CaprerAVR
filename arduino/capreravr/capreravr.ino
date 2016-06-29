@@ -5,10 +5,10 @@
   
   
   The circuit:
-    * button LED attached from pin 13 to ground
-    * buzz button attached to pin 2 from +5V
-    * 10K resistor attached to pin 2 from ground
-    * DFR0299 mp3 player attached to pin 0 and 1 (serial) and power
+    * button LED attached from pin 13, 8, 9, 10 to ground
+    * buzz buttons attached to pin 2, 3, 4, 5 from +5V
+    * 10K resistors attached to pin 2, 3, 4, 5 from ground
+    * DFR0299 mp3 player attached to pin 0, 1 (serial), 6 (buzy) and power
     * speaker attached to DFR0299 pin 6 and 8
   
   * Note: on most Arduinos there is already an LED on the board
@@ -84,6 +84,8 @@ void setup() {
 
   // Set Serial for DFPlayer-mini mp3 module
   mp3_set_serial(Serial1);
+  // Set logging Serial
+  mp3_set_debug_serial(Serial);
   // Set volume (value 0~30)
   mp3_set_volume(volume);
   // Set device to microSD
@@ -117,6 +119,7 @@ void setup() {
 }
 
 void loop() {
+  // Read buzy state
   int busyState = digitalRead(busyPin);
   
   buttonsState = 0;
@@ -135,28 +138,28 @@ void loop() {
     }
 
     if (buttonsState == BUTTON1) {
-      Serial.print("Play folder 1");
+      Serial.println("Play folder 1");
       
       // Button 1 pressed
       mp3_play_file_in_folder(1, random(1, tracks[0] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON2) {
-      Serial.print("Play folder 2");
+      Serial.println("Play folder 2");
       
       // Button 2 pressed
       mp3_play_file_in_folder(2, random(1, tracks[1] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON3) {
-      Serial.print("Play folder 3");
+      Serial.println("Play folder 3");
       
       // Button 3 pressed
       mp3_play_file_in_folder(3, random(1, tracks[2] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON4) {
-      Serial.print("Play folder 4");
+      Serial.println("Play folder 4");
       
       // Button 4 pressed
       mp3_play_file_in_folder(4, random(1, tracks[3] + 1));
