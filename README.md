@@ -23,6 +23,12 @@
  - *4 x* ~100nF capacitator
  - *1 x* speaker
  - *some* mp3 samples
+
+## ESP8266
+
+It's possible to add networking capabilities to this awesome device thank to the ``ESP8266`` module.
+
+Follow instruction from this [repository](https://github.com/esp8266/Arduino) to enable the board on the Arduino IDE.
  
 ## Links
 
