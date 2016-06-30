@@ -29,6 +29,21 @@
 It's possible to add networking capabilities to this awesome device thank to the ``ESP8266`` module.
 
 Follow instruction from this [repository](https://github.com/esp8266/Arduino) to enable the board on the Arduino IDE.
+
+In order to flash the firmware you need to set in bootloader mode the module: connect the ``GPIO0`` pin to ``GND``
+and re-power. For normal operation instead connect ``GPIO0`` to ``VCC``.
+
+At the ``arduino/WifiWebServer/`` path you can find a proof of concept for a web service that acts on the GPIO pins.
+
+From the serial console you can observe this output
+
+```
+Connecting to wifi-essid
+..
+WiFi connected
+Server started
+Use this URL to connect: http://192.168.1.11/
+```
  
 ## Links
 
