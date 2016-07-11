@@ -65,7 +65,7 @@ SoftwareSerial mp3Serial(10, 11);
 int buttonsState = 0;         // variable for reading the buzz button status
 int ledsState = 0;         // variable for storing the LEDs status
 int tracks[buttonsCount] = {0, 0, 0, 0};              // tracks in microSD
-int volume = 20;              // the volume level
+int volume = 22;              // the volume level
 
 int set_leds (int state) {
     if (ledsState != state) {
