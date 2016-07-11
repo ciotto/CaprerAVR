@@ -54,6 +54,10 @@ const int BUTTON2 = B0010;
 const int BUTTON3 = B0100;
 const int BUTTON4 = B1000;
 
+const int MODE0 = B0000;
+const int MODE1 = B1000;  // Prevent play folder 04
+const int MODE2 = B0111;  // Play only folder 04
+
 const int buttonsCount = 4;                               // the number of the buzz button
 const int busyPin = 6;                                    // Arduino pin wired to DFR0299 16 pin
 const int buttonsPin[buttonsCount] = {2, 3, 4, 5};        // the number of the buzz buttons pin
@@ -66,16 +70,21 @@ int buttonsState = 0;         // variable for reading the buzz button status
 int ledsState = 0;         // variable for storing the LEDs status
 int tracks[buttonsCount] = {0, 0, 0, 0};              // tracks in microSD
 int volume = 22;              // the volume level
+int mode = MODE1;             // the box mode
 
 int set_leds (int state) {
-    if (ledsState != state) {
-      ledsState = state;
-      
-      for (int i=0; i < buttonsCount; i++) {
-        // turn LEDs on if related button pressed:
-        digitalWrite(ledsPin[i], (state & (1 << i)) >> i);
-      }
+  if (state == 0) {
+    state = mode;
+  }
+
+  if (ledsState != state) {
+    ledsState = state;
+    
+    for (int i=0; i < buttonsCount; i++) {
+      // turn LEDs on if related button pressed:
+      digitalWrite(ledsPin[i], (state & (1 << i)) >> i);
     }
+  }
 }
 
 void setup() {
@@ -111,15 +120,16 @@ void setup() {
   }
 
   // Blink LEDs
-  set_leds(B1111);
   delay(100);
+  set_leds(B1111);
+  delay(500);
   set_leds(B0000);
 }
 
 void loop() {
   // Read buzy state
   int busyState = digitalRead(busyPin);
-  
+
   buttonsState = 0;
   for (int i=0; i < buttonsCount; i++) {
     // read the state of the buzz button value:
@@ -133,6 +143,13 @@ void loop() {
     for (int i=0; i < buttonsCount; i++) {
       // turn LEDs on if related button pressed:
       digitalWrite(ledsPin[i], (buttonsState & (1 << i)) >> i);
+    }
+
+    // MODE1 prevent play folder 4
+    if (buttonsState == BUTTON4 && mode == MODE1) {
+      buttonsState = BUTTON3;
+    }else if ((buttonsState == BUTTON1 || buttonsState == BUTTON2 || buttonsState == BUTTON3) && mode == MODE2) {
+      buttonsState = BUTTON4;
     }
 
     if (buttonsState == BUTTON1) {
@@ -184,7 +201,21 @@ void loop() {
       // Set volume (value 0~30)
       mp3_set_volume(volume);
     } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
-      // All buttons pressed
+      // Change mode
+      if (mode == MODE0) {
+        
+        mode = MODE1;
+      } else if (mode == MODE1) {
+        
+        mode = MODE2;
+      } else {
+        mode = MODE0;
+      }
+
+      Serial.print("Select mode ");
+      Serial.println(mode, BIN);
+
+      delay(200);
     } else {
       // other
     }
