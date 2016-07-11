@@ -57,7 +57,7 @@ const int BUTTON4 = B1000;
 const int buttonsCount = 4;                               // the number of the buzz button
 const int busyPin = 6;                                    // Arduino pin wired to DFR0299 16 pin
 const int buttonsPin[buttonsCount] = {2, 3, 4, 5};        // the number of the buzz buttons pin
-const int ledsPin[buttonsCount] = {13, 8, 9, 12};       // the number of the buzz buttons LED pin
+const int ledsPin[buttonsCount] = {8, 13, 9, 12};       // the number of the buzz buttons LED pin
 
 SoftwareSerial mp3Serial(10, 11);
 
