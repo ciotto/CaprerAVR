@@ -49,19 +49,26 @@
 #include <DFPlayer_Mini_Mp3.h>
 
 // costants
-const int BUTTON1 = B0001;
-const int BUTTON2 = B0010;
-const int BUTTON3 = B0100;
-const int BUTTON4 = B1000;
-
-const int MODE0 = B0000;
-const int MODE1 = B1000;  // Prevent play folder 04
-const int MODE2 = B0111;  // Play only folder 04
-
 const int buttonsCount = 4;                               // the number of the buzz button
 const int busyPin = 6;                                    // Arduino pin wired to DFR0299 16 pin
 const int buttonsPin[buttonsCount] = {2, 3, 4, 5};        // the number of the buzz buttons pin
 const int ledsPin[buttonsCount] = {8, 13, 9, 12};       // the number of the buzz buttons LED pin
+
+const int BUTTON1 = B0001;
+const int BUTTON2 = B0010;
+const int BUTTON3 = B0100;
+const int BUTTON4 = B1000;
+const int BUTTONS[buttonsCount] = {BUTTON1, BUTTON2, BUTTON3, BUTTON4};
+
+const int BUTTON1_FOLDER = 1;
+const int BUTTON2_FOLDER = 2;
+const int BUTTON3_FOLDER = 3;
+const int BUTTON4_FOLDER = 4;
+const int MODE_FOLDER = 5;
+
+const int MODE0 = B0000;
+const int MODE1 = B1000;  // Prevent play folder 04
+const int MODE2 = B0111;  // Play only folder 04
 
 SoftwareSerial mp3Serial(10, 11);
 
@@ -70,7 +77,17 @@ int buttonsState = 0;         // variable for reading the buzz button status
 int ledsState = 0;         // variable for storing the LEDs status
 int tracks[buttonsCount] = {0, 0, 0, 0};              // tracks in microSD
 int volume = 22;              // the volume level
-int mode = MODE1;             // the box mode
+int mode;             // the box mode
+
+void set_mode (int m) {
+  mode = m;
+  
+  // Play mode sound
+  mp3_play_file_in_folder(MODE_FOLDER, mode);
+  
+  Serial.print("Select mode ");
+  Serial.println(mode, BIN);
+}
 
 int set_leds (int state) {
   if (state == 0) {
@@ -119,6 +136,9 @@ void setup() {
     Serial.println(".");
   }
 
+  // Set default mode
+  set_mode(MODE1);
+
   // Blink LEDs
   delay(100);
   set_leds(B1111);
@@ -156,28 +176,28 @@ void loop() {
       Serial.println("Play folder 1");
       
       // Button 1 pressed
-      mp3_play_file_in_folder(1, random(1, tracks[0] + 1));
+      mp3_play_file_in_folder(BUTTON1_FOLDER, random(1, tracks[0] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON2) {
       Serial.println("Play folder 2");
       
       // Button 2 pressed
-      mp3_play_file_in_folder(2, random(1, tracks[1] + 1));
+      mp3_play_file_in_folder(BUTTON2_FOLDER, random(1, tracks[1] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON3) {
       Serial.println("Play folder 3");
       
       // Button 3 pressed
-      mp3_play_file_in_folder(3, random(1, tracks[2] + 1));
+      mp3_play_file_in_folder(BUTTON3_FOLDER, random(1, tracks[2] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON4) {
       Serial.println("Play folder 4");
       
       // Button 4 pressed
-      mp3_play_file_in_folder(4, random(1, tracks[3] + 1));
+      mp3_play_file_in_folder(BUTTON4_FOLDER, random(1, tracks[3] + 1));
 
       delay(200);
     } else if (buttonsState == BUTTON1 + BUTTON3 + BUTTON2) {
@@ -202,18 +222,13 @@ void loop() {
       mp3_set_volume(volume);
     } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
       // Change mode
+      int m = MODE0;
       if (mode == MODE0) {
-        
-        mode = MODE1;
+        m = MODE1;
       } else if (mode == MODE1) {
-        
-        mode = MODE2;
-      } else {
-        mode = MODE0;
+        m = MODE2;
       }
-
-      Serial.print("Select mode ");
-      Serial.println(mode, BIN);
+      set_mode(m);
 
       delay(200);
     } else {
