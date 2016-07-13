@@ -69,6 +69,7 @@ const int MODE_FOLDER = 5;
 const int MODE0 = B0000;
 const int MODE1 = B1000;  // Prevent play folder 04
 const int MODE2 = B0111;  // Play only folder 04
+const int MODE3 = B0010;  // Play random folder 04
 
 SoftwareSerial mp3Serial(10, 11);
 
@@ -78,6 +79,13 @@ int ledsState = 0;         // variable for storing the LEDs status
 int tracks[buttonsCount] = {0, 0, 0, 0};              // tracks in microSD
 int volume = 22;              // the volume level
 int mode;             // the box mode
+
+// http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
+int number_of_set_bits(int state) {
+     state = state - ((state >> 1) & 0x55555555);
+     state = (state & 0x33333333) + ((state >> 2) & 0x33333333);
+     return (((state + (state >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
 
 void set_mode (int m) {
   mode = m;
@@ -156,6 +164,7 @@ void loop() {
     int state = digitalRead(buttonsPin[i]);
     buttonsState = buttonsState | (state << i);
   }
+  int pressedButtons = number_of_set_bits(buttonsState);
 
   // check if the a buzz buttons is pressed and DFR0299 is not buzy.
   if (buttonsState > 0 && busyState == 1) {
@@ -168,8 +177,10 @@ void loop() {
     // MODE1 prevent play folder 4
     if (buttonsState == BUTTON4 && mode == MODE1) {
       buttonsState = BUTTON3;
-    }else if ((buttonsState == BUTTON1 || buttonsState == BUTTON2 || buttonsState == BUTTON3) && mode == MODE2) {
+    }else if (pressedButtons == 1 && mode == MODE2) {
       buttonsState = BUTTON4;
+    }else if (pressedButtons == 1 && mode == MODE3) {
+      buttonsState = BUTTONS[random(0, buttonsCount)];
     }
 
     if (buttonsState == BUTTON1) {
@@ -227,6 +238,8 @@ void loop() {
         m = MODE1;
       } else if (mode == MODE1) {
         m = MODE2;
+      } else if (mode == MODE2) {
+        m = MODE3;
       }
       set_mode(m);
 
