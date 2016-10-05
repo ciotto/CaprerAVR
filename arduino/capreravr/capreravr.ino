@@ -296,9 +296,12 @@ void loop() {
         m = MODE2;
       } else if (mode == MODE2) {
         m = MODE3;
+    } else if (currentState == MODE_SWITCH && newBusyState == !MP3_BUSY) {
       }
       set_mode(m);
     }
+
+    delay(500);
   }
 
   // Check if DFR0299 busy state change to not busy
