@@ -47,48 +47,18 @@
 
 #include <SoftwareSerial.h>
 #include <DFPlayer_Mini_Mp3.h>
+#include "capreravr.h"
 
-// costants
-const int BUTTONS_COUNT = 4;                              // the number of the buzz button
-const int BUSY_PIN = 6;                                    // Arduino pin wired to DFR0299 16 pin
-const int buttonsPin[BUTTONS_COUNT] = {2, 3, 4, 5};       // the number of the buzz buttons pin
-const int ledsPin[BUTTONS_COUNT] = {8, 13, 9, 12};        // the number of the buzz buttons LED pin
-
-// Buttons
-const int BUTTON1 = B0001;
-const int BUTTON2 = B0010;
-const int BUTTON3 = B0100;
-const int BUTTON4 = B1000;
-const int BUTTONS[BUTTONS_COUNT] = {BUTTON1, BUTTON2, BUTTON3, BUTTON4};
-
-// Folders
-const int BUTTON1_FOLDER = 1;
-const int BUTTON2_FOLDER = 2;
-const int BUTTON3_FOLDER = 3;
-const int BUTTON4_FOLDER = 4;
-const int MODE_FOLDER = 5;
-const int SOUND_FOLDER = 6;
-
-// Sounds
-const int VOLUME_SOUND = 1;
-
-// Modes
-const int MODE0 = B0000;
-const int MODE1 = B1000;      // Prevent play folder 04
-const int MODE2 = B0111;      // Play only folder 04
-const int MODE3 = B0010;      // Play random folder 04
-
-const boolean BUSY = 0;       // DFR0299 busy pin level
-
-SoftwareSerial mp3Serial(10, 11);
+SoftwareSerial mp3Serial(MP3_SERIAL_RX, MP3_SERIAL_TX);
 
 // variables
-int buttonsState = 0;         // variable for reading the buzz button status
-int ledsState = 0;         // variable for storing the LEDs status
-int tracks[BUTTONS_COUNT] = {0, 0, 0, 0};              // tracks in microSD
-int volume = 22;              // the volume level
-int mode;             // the box mode
-boolean busyState = !BUSY;
+byte currentState = 0;                       // variable for storing the command/state
+byte currentParameters = 0;                  // variable for storing extra data
+boolean currentBusyState = !MP3_BUSY;
+byte ledsState = 0;                          // variable for storing the LEDs status
+byte tracks[BUTTONS_COUNT] = {0, 0, 0, 0};   // tracks in microSD
+byte volume = 22;                            // the volume level
+byte mode;                                   // the box mode
 
 // http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
 int number_of_set_bits(int state) {
@@ -149,7 +119,7 @@ int set_leds (int state) {
     
     for (int i=0; i < BUTTONS_COUNT; i++) {
       // turn LEDs on if related button pressed:
-      digitalWrite(ledsPin[i], (state & (1 << i)) >> i);
+      digitalWrite(LEDS_PIN[i], (state & (1 << i)) >> i);
     }
   }
 }
@@ -171,9 +141,9 @@ void setup() {
   
   for (int i=0; i < BUTTONS_COUNT; i++) {
     // initialize the LED pin as an output:
-    pinMode(ledsPin[i], OUTPUT);
+    pinMode(LEDS_PIN[i], OUTPUT);
     // initialize the buzz button pin as an input:
-    pinMode(buttonsPin[i], INPUT);
+    pinMode(BUTTONS_PIN[i], INPUT);
     
     // Query the total number of microSD card files
     mp3_get_folder_sum(i + 1);
@@ -187,7 +157,7 @@ void setup() {
   }
 
   // Set default mode
-  set_mode(MODE1);
+  set_mode(DEFAULT_MODE);
 
   // Blink LEDs
   delay(100);
@@ -201,46 +171,49 @@ void loop() {
   boolean newBusyState = digitalRead(BUSY_PIN);
 
   // Read buttons state
-  buttonsState = 0;
-  for (int i=0; i < BUTTONS_COUNT; i++) {
-    // read the state of the buzz button value:
-    int state = digitalRead(buttonsPin[i]);
-    buttonsState = buttonsState | (state << i);
+  byte buttonsState = 0;
+  for (byte i=0; i < BUTTONS_COUNT; i++) {
+    // read the state of the buzz button
+    byte buttonState = digitalRead(BUTTONS_PIN[i]);
+    buttonsState |= (buttonState << i);
   }
-  int pressedButtons = number_of_set_bits(buttonsState);
+
+  currentState = buttonsState;
+
+  byte bitsCount = number_of_set_bits(currentState);
 
   // Check if the a buzz buttons is pressed
-  if (pressedButtons == 1) { 
-    if (busyState == 1) {
-      // MODE1 prevent play folder 4
-      if (buttonsState == BUTTON4 && mode == MODE1) {
-        buttonsState = BUTTON3;
+  if (bitsCount == 1) { 
+    if (newBusyState == !MP3_BUSY) {
+      // MODE2 prevent play folder 4
+      if (currentState == BUTTON4 && mode == MODE2) {
+        currentState = BUTTON3;
 
-      // MODE2 play only folder 4
-      }else if (pressedButtons == 1 && mode == MODE2) {
-        buttonsState = BUTTON4;
+      // MODE3 play only folder 4
+      }else if (bitsCount == 1 && mode == MODE3) {
+        currentState = BUTTON4;
 
-      // MODE3 play random folder
-      }else if (pressedButtons == 1 && mode == MODE3) {
-        buttonsState = BUTTONS[random(0, BUTTONS_COUNT)];
+      // MODE4 play random folder
+      }else if (bitsCount == 1 && mode == MODE4) {
+        currentState = BUTTONS[random(0, BUTTONS_COUNT)];
       }
 
       // Button 1 pressed
       //   X  O
       //   O  O
-      if (buttonsState == BUTTON1) {
+      if (currentState == BUTTON1) {
         play_folder(1);
         
       // Button 2 pressed
       //   O  X
       //   O  O
-      } else if (buttonsState == BUTTON2) {
+      } else if (currentState == BUTTON2) {
         play_folder(2);
         
       // Button 3 pressed
       //   O  O
       //   X  O
-      } else if (buttonsState == BUTTON3) {
+      } else if (currentState == BUTTON3) {
         play_folder(3);
 
       // Button 4 pressed
@@ -258,45 +231,44 @@ void loop() {
     delay(200);
     
   // More that one button pressed (special controls)
-  } else if (pressedButtons > 1) {
+  } else if (bitsCount > 1) {
     // Volume UP
     //   X  X
     //   X  O
-    if (buttonsState == BUTTON1 + BUTTON3 + BUTTON2) {
+    if (currentState == VOLUME_UP) {
       if (volume < 30) {
         volume++;
       }
     
       set_volume(volume);
-      if (newBusyState == !BUSY) {
+      if (newBusyState == !MP3_BUSY) {
         mp3_play_file_in_folder(SOUND_FOLDER, VOLUME_SOUND);
       }
 
     // Volume DOWN
     //   X  O
     //   X  X
-    } else if (buttonsState == BUTTON1 + BUTTON3 + BUTTON4) {
+    } else if (currentState == VOLUME_DOWN) {
       if (volume > 0) {
         volume--;
       }
     
       set_volume(volume);
-      if (newBusyState == !BUSY) {
+      if (newBusyState == !MP3_BUSY) {
         mp3_play_file_in_folder(SOUND_FOLDER, VOLUME_SOUND);
       }
 
     // Change mode
     //   X  X
     //   X  X
-    } else if (buttonsState == BUTTON1 + BUTTON2 + BUTTON3 + BUTTON4) {
-      int m = MODE0;
-      if (mode == MODE0) {
-        m = MODE1;
-      } else if (mode == MODE1) {
+    } else if (currentState == MODE_SWITCH && newBusyState == !MP3_BUSY) {
+      byte m = MODE1;
+      if (mode == MODE1) {
         m = MODE2;
       } else if (mode == MODE2) {
         m = MODE3;
-    } else if (currentState == MODE_SWITCH && newBusyState == !MP3_BUSY) {
+      } else if (mode == MODE3) {
+        m = MODE4;
       }
       set_mode(m);
     }
@@ -305,10 +277,10 @@ void loop() {
   }
 
   // Check if DFR0299 busy state change to not busy
-  if (newBusyState == !BUSY && busyState != newBusyState) {
+  if (newBusyState == !MP3_BUSY && currentBusyState != newBusyState) {
     set_leds(0);
   }
-  busyState = newBusyState;
+  currentBusyState = newBusyState;
 
   delay(100);
 }
