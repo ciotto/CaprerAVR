@@ -48,6 +48,7 @@
 #include <SoftwareSerial.h>
 #include <DFPlayer_Mini_Mp3.h>
 #include "capreravr.h"
+#include "CapreraUtilities.h"
 
 SoftwareSerial mp3Serial(MP3_SERIAL_RX, MP3_SERIAL_TX);
 
@@ -170,6 +171,24 @@ void loop() {
   // Read busy state
   boolean newBusyState = digitalRead(BUSY_PIN);
 
+  // Read serial command
+  byte serialCommand = 0;
+  byte serialParameters = 0;
+  if (Serial.available() >= COMMANDS_SIZE) {
+    char *buffer = "00000000";
+    for (byte i=0; i < COMMANDS_SIZE; i++) {
+      // read the incoming byte:
+      buffer[i] = Serial.read();
+    }
+
+    Serial.print("Serial command received: ");
+    Serial.println(buffer);
+
+    serialCommand = bitString2Int(buffer, COMMANDS_SIZE + 1);
+    serialParameters = serialCommand >> 4;
+    serialCommand &= B00001111;
+  }
+
   // Read buttons state
   byte buttonsState = 0;
   for (byte i=0; i < BUTTONS_COUNT; i++) {
@@ -178,7 +197,12 @@ void loop() {
     buttonsState |= (buttonState << i);
   }
 
-  currentState = buttonsState;
+  if (buttonsState) {
+    currentState = buttonsState;
+  } else {
+    currentParameters = serialParameters;
+    currentState = serialCommand;
+  }
 
   byte bitsCount = number_of_set_bits(currentState);
 
@@ -263,12 +287,16 @@ void loop() {
     //   X  X
     } else if (currentState == MODE_SWITCH && newBusyState == !MP3_BUSY) {
       byte m = MODE1;
-      if (mode == MODE1) {
-        m = MODE2;
-      } else if (mode == MODE2) {
-        m = MODE3;
-      } else if (mode == MODE3) {
-        m = MODE4;
+      if (currentParameters && currentParameters <= MODES_COUNT) {
+        m = MODES[currentParameters - 1];
+      } else {
+        if (mode == MODE1) {
+          m = MODE2;
+        } else if (mode == MODE2) {
+          m = MODE3;
+        } else if (mode == MODE3) {
+          m = MODE4;
+        }
       }
       set_mode(m);
     }
