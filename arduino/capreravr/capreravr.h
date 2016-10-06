@@ -36,7 +36,7 @@ const byte DEFAULT_MODE = MODE2;
 
 // Other commands
 const byte VOLUME_UP = BUTTON1 + BUTTON3 + BUTTON2;
-const byte VOLUME_DOWN = BUTTON1 + BUTTON2 + BUTTON3;
+const byte VOLUME_DOWN = BUTTON1 + BUTTON3 + BUTTON4;
 
 
 const byte BUTTONS_PIN[BUTTONS_COUNT] = {2, 3, 4, 5};       // the number of the buzz buttons pin
