@@ -13,19 +13,7 @@ ESP8266WebServer server(80);
 
 const int LED_PIN = 13;
 
-void handleAction() {
-  digitalWrite(LED_PIN, 1);
-  
-
-  
-  server.send(200, "application/json", "true");
-  
-  digitalWrite(LED_PIN, 0);
-}
-
-void handleRoot() {
-  digitalWrite(LED_PIN, 1);
-
+boolean handleCommands() {
   int command = 0;
   if (server.arg("volume").equals("up")) {
     command = VOLUME_UP;
@@ -53,7 +41,26 @@ void handleRoot() {
     char buffer[COMMANDS_SIZE + 1];
     
     Serial1.print(int2BitString(buffer, command, COMMANDS_SIZE + 1));
+    
+    return true;
   }
+
+  return false;
+}
+
+void handleJson() {
+  digitalWrite(LED_PIN, 1);
+
+  boolean sent = handleCommands();
+  
+  server.send(200, "application/json", sent ? "true" : "false");
+  digitalWrite(LED_PIN, 0);
+}
+
+void handleRoot() {
+  digitalWrite(LED_PIN, 1);
+
+  handleCommands();
 
   int bufferSize = 400;
   char* html =
@@ -90,8 +97,8 @@ void handleRoot() {
     </ul>\
   </body>\
 </html>";
+
   server.send(200, "text/html", html);
-  
   digitalWrite(LED_PIN, 0);
 }
 
@@ -108,6 +115,7 @@ void handleNotFound(){
   for (uint8_t i=0; i<server.args(); i++){
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
+
   server.send(404, "text/plain", message);
   digitalWrite(LED_PIN, 0);
 }
@@ -137,8 +145,8 @@ void setup(void){
   }
 
   server.on("/", handleRoot);
-  
-  server.on("/1", handleRoot);
+  server.on("/json", handleJson);
+
   server.on("/inline", [](){
     server.send(200, "text/plain", "this works as well");
   });
