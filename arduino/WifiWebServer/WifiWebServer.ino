@@ -1,102 +1,154 @@
 #include <ESP8266WiFi.h>
- 
-const char* ssid = "your-ssid";
-const char* password = "your-password";
- 
-int ledPin = 2; // GPIO2
-WiFiServer server(80);
- 
-void setup() {
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+#include "capreravr.h"
+#include "WiFiConfig.h"
+#include "CapreraUtilities.h"
+
+
+//IPAddress ip(192, 168, 1, 9);
+
+ESP8266WebServer server(80);
+
+const int LED_PIN = 13;
+
+void handleAction() {
+  digitalWrite(LED_PIN, 1);
+  
+
+  
+  server.send(200, "application/json", "true");
+  
+  digitalWrite(LED_PIN, 0);
+}
+
+void handleRoot() {
+  digitalWrite(LED_PIN, 1);
+
+  int command = 0;
+  if (server.arg("volume").equals("up")) {
+    command = VOLUME_UP;
+  }else if (server.arg("volume").equals("down")) {
+    command = VOLUME_DOWN;
+  }else if (server.arg("button").equals("1")) {
+    command = BUTTON1;
+  }else if (server.arg("button").equals("2")) {
+    command = BUTTON2;
+  }else if (server.arg("button").equals("3")) {
+    command = BUTTON3;
+  }else if (server.arg("button").equals("4")) {
+    command = BUTTON4;
+  }else if (server.arg("mode").equals("1")) {
+    command = MODE_SWITCH | (1 << 4);
+  }else if (server.arg("mode").equals("2")) {
+    command = MODE_SWITCH | (2 << 4);
+  }else if (server.arg("mode").equals("3")) {
+    command = MODE_SWITCH | (3 << 4);
+  }else if (server.arg("mode").equals("4")) {
+    command = MODE_SWITCH | (4 << 4);
+  }
+  // Send command over Serial1
+  if (command != 0) {
+    char buffer[COMMANDS_SIZE + 1];
+    
+    Serial1.print(int2BitString(buffer, command, COMMANDS_SIZE + 1));
+  }
+
+  int bufferSize = 400;
+  char* html =
+"<html>\
+  <head>\
+    <title>CaprerAVR</title>\
+    <style>\
+      body { background-color: #ccc; font-family: Arial, Helvetica, Sans-Serif; color: #333; }\
+      h1 { color: #c00; }\
+      a { color: #333; text-decoration: none; }\
+      a:hover { font-weight: bold; }\
+    </style>\
+  </head>\
+  <body>\
+    <center><h1>Hello from CaprerAVR!</h1></center>\
+\
+    <ul>\
+      <li><a href=\"?volume=up\">Volume Up</a></li>\
+      <li><a href=\"?volume=down\">Volume Down</a></li>\
+    </ul>\
+\
+    <ul>\
+      <li><a href=\"?button=1\">Button 1</a></li>\
+      <li><a href=\"?button=2\">Button 2</a></li>\
+      <li><a href=\"?button=3\">Button 3</a></li>\
+      <li><a href=\"?button=4\">Button 4</a></li>\
+    </ul>\
+\
+    <ul>\
+      <li><a href=\"?mode=1\">Mode 1</a></li>\
+      <li><a href=\"?mode=2\">Mode 2</a></li>\
+      <li><a href=\"?mode=3\">Mode 3</a></li>\
+      <li><a href=\"?mode=4\">Mode 4</a></li>\
+    </ul>\
+  </body>\
+</html>";
+  server.send(200, "text/html", html);
+  
+  digitalWrite(LED_PIN, 0);
+}
+
+void handleNotFound(){
+  digitalWrite(LED_PIN, 1);
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += server.uri();
+  message += "\nMethod: ";
+  message += (server.method() == HTTP_GET)?"GET":"POST";
+  message += "\nArguments: ";
+  message += server.args();
+  message += "\n";
+  for (uint8_t i=0; i<server.args(); i++){
+    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  }
+  server.send(404, "text/plain", message);
+  digitalWrite(LED_PIN, 0);
+}
+
+void setup(void){
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, 0);
   Serial.begin(115200);
-  delay(10);
- 
- 
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
-   
-  // Connect to WiFi network
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-   
-  WiFi.begin(ssid, password);
-   
+  Serial1.begin(9600);
+  WiFi.begin(SSID, PASSWORD);
+  Serial.println("");
+
+  // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("");
-  Serial.println("WiFi connected");
-   
-  // Start the server
-  server.begin();
-  Serial.println("Server started");
- 
-  // Print the IP address
-  Serial.print("Use this URL to connect: ");
-  Serial.print("http://");
+  Serial.print("Connected to ");
+  Serial.println(SSID);
+  Serial.print("URL: http://");
   Serial.print(WiFi.localIP());
   Serial.println("/");
-    
+
+  if (MDNS.begin("esp8266")) {
+    Serial.println("MDNS responder started");
+  }
+
+  server.on("/", handleRoot);
+  
+  server.on("/1", handleRoot);
+  server.on("/inline", [](){
+    server.send(200, "text/plain", "this works as well");
+  });
+
+  server.onNotFound(handleNotFound);
+
+  server.begin();
+  Serial.println("HTTP server started");
 }
- 
-void loop() {
-  // Check if a client has connected
-  WiFiClient client = server.available();
-  if (!client) {
-    return;
-  }
-   
-  // Wait until the client sends some data
-  Serial.println("new client");
-  while(!client.available()){
-    delay(1);
-  }
-   
-  // Read the first line of the request
-  String request = client.readStringUntil('\r');
-  Serial.println(request);
-  client.flush();
-   
-  // Match the request
- 
-  int value = LOW;
-  if (request.indexOf("/LED=ON") != -1) {
-    digitalWrite(ledPin, HIGH);
-    value = HIGH;
-  } 
-  if (request.indexOf("/LED=OFF") != -1){
-    digitalWrite(ledPin, LOW);
-    value = LOW;
-  }
- 
-// Set ledPin according to the request
-//digitalWrite(ledPin, value);
-   
- 
-  // Return the response
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/html");
-  client.println(""); //  do not forget this one
-  client.println("<!DOCTYPE HTML>");
-  client.println("<html>");
-   
-  client.print("Led pin is now: ");
-   
-  if(value == HIGH) {
-    client.print("On");  
-  } else {
-    client.print("Off");
-  }
-  client.println("<br><br>");
-  client.println("Click <a href=\"/LED=ON\">here</a> turn the LED on pin 2 ON<br>");
-  client.println("Click <a href=\"/LED=OFF\">here</a> turn the LED on pin 2 OFF<br>");
-  client.println("</html>");
- 
-  delay(1);
-  Serial.println("Client disonnected");
-  Serial.println("");
- 
+
+void loop(void){
+  server.handleClient();
 }
- 
