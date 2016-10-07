@@ -1,10 +1,14 @@
 # CaprerAVR
 
-![CaprerAVR](fritzing/capreravr_bb.png)
+![CaprerAVR](images/capreravr.jpg)
 
 **CaprerAVR** is a crazy project for office survival, when you are in difficult, push the buzz button and **CaprerAVR** helps you!!
 
 ![Dai dai dai](http://www.serialminds.com/wp-content/uploads/2016/03/dai-dai-dai.gif)
+
+### Breadboar Schematic
+
+![CaprerAVR](fritzing/capreravr_bb.png)
 
 
 ## Info
