@@ -47,6 +47,10 @@ const boolean MP3_BUSY = false;       // DFR0299 busy pin level
 const byte MP3_SERIAL_TX = 11;
 const byte MP3_SERIAL_RX = 10;
 
+// ESP8266 comunication
+const byte WIFI_SERIAL_TX = 19;
+const byte WIFI_SERIAL_RX = 18;
+
 // Serial commands
 const byte COMMANDS_ARGUMENT_LENGTH = 4;
 const byte COMMANDS_SIZE = COMMANDS_ARGUMENT_LENGTH + BUTTONS_COUNT;

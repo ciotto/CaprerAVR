@@ -51,6 +51,7 @@
 #include "CapreraUtilities.h"
 
 SoftwareSerial mp3Serial(MP3_SERIAL_RX, MP3_SERIAL_TX);
+SoftwareSerial wiFiSerial(WIFI_SERIAL_RX, WIFI_SERIAL_TX);
 
 // variables
 byte currentState = 0;                       // variable for storing the command/state
@@ -174,8 +175,10 @@ void loop() {
   // Read serial command
   byte serialCommand = 0;
   byte serialParameters = 0;
+  char *buffer = "00000000";
+
   if (Serial.available() >= COMMANDS_SIZE) {
-    char *buffer = "00000000";
+    // USB serial
     for (byte i=0; i < COMMANDS_SIZE; i++) {
       // read the incoming byte:
       buffer[i] = Serial.read();
@@ -183,11 +186,20 @@ void loop() {
 
     Serial.print("Serial command received: ");
     Serial.println(buffer);
+  }else if (wiFiSerial.available() >= COMMANDS_SIZE) {
+    // WiFI serial
+    for (byte i=0; i < COMMANDS_SIZE; i++) {
+      // read the incoming byte:
+      buffer[i] = wiFiSerial.read();
+    }
 
-    serialCommand = bitString2Int(buffer, COMMANDS_SIZE + 1);
-    serialParameters = serialCommand >> 4;
-    serialCommand &= B00001111;
-  }
+    Serial.print("WiFi command received: ");
+    Serial.println(buffer);
+  } 
+
+  serialCommand = bitString2Int(buffer, COMMANDS_SIZE + 1);
+  serialParameters = serialCommand >> 4;
+  serialCommand &= B00001111;
 
   // Read buttons state
   byte buttonsState = 0;
