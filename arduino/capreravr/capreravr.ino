@@ -181,7 +181,7 @@ void loop() {
   // Read serial command
   byte serialCommand = 0;
   byte serialParameters = 0;
-  char *buffer = "00000000";
+  char buffer[9] = {'0', '0', '0', '0', '0', '0', '0', '0', '\0'};
 
   if (Serial.available() >= COMMANDS_SIZE) {
     // USB serial
