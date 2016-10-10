@@ -128,10 +128,15 @@ int set_leds (int state) {
 
 void setup() {
   // Init serial
-  mp3Serial.begin (9600);
   Serial.begin (9600);
   while (!Serial);
 
+  mp3Serial.begin (9600);
+  wiFiSerial.begin (9600);
+
+  Serial.println("Starting CaprerAVR...\n");
+
+  mp3Serial.listen();
   // Set Serial for DFPlayer-mini mp3 module
   mp3_set_serial(mp3Serial);
   // Set logging Serial
@@ -157,6 +162,7 @@ void setup() {
     Serial.print(i + 1);
     Serial.println(".");
   }
+  wiFiSerial.listen();
 
   // Set default mode
   set_mode(DEFAULT_MODE);
