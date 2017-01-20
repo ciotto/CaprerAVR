@@ -221,7 +221,7 @@ void loop() {
   byte buttonsState = 0;
   for (byte i=0; i < BUTTONS_COUNT; i++) {
     // read the state of the buzz button
-    byte buttonState = digitalRead(BUTTONS_PIN[i]);
+    byte buttonState = !digitalRead(BUTTONS_PIN[i]);
     buttonsState |= (buttonState << i);
   }
 
