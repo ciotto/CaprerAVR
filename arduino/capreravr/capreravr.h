@@ -40,7 +40,7 @@ const byte VOLUME_DOWN = BUTTON1 + BUTTON3 + BUTTON4;
 
 
 const byte BUTTONS_PIN[BUTTONS_COUNT] = {2, 3, 4, 5};       // the number of the buzz buttons pin
-const byte LEDS_PIN[BUTTONS_COUNT] = {13, 8, 9, 12};        // the number of the buzz buttons LED pin
+const byte LEDS_PIN[BUTTONS_COUNT] = {8, 9, 12, 13};        // the number of the buzz buttons LED pin
 
 // DFR0299 comunication
 const boolean MP3_BUSY = false;       // DFR0299 busy pin level
