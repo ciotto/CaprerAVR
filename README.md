@@ -38,6 +38,8 @@ There are many versions of the ESP8266 and I tested with the [ESP-12e](https://i
 
 Be careful, ESP8266 use a lot of current and work at **3.3V**, so if you have problem during scketch upload problably you don't have enought current (from specific *170mA*). Evaluate to use an external power source.
 
+![ESP-12e pinout](http://simba-os.readthedocs.io/en/latest/_images/esp12e-pinout.png)
+
 Follow instruction from this [repository](https://github.com/esp8266/Arduino) to enable the board on the Arduino IDE.
 
 ![ESP-12e](fritzing/ESP-12e_bb.png)
@@ -65,6 +67,25 @@ MDNS responder started
 HTTP server started
 ```
 
+### Compiling .html files
+
+I made a simple *Python* tool that convert all **.html** pages in the [arduino/WifiWebServer/html/](arduino/WifiWebServer/html/) folder in **C headers** files with same naming.
+
+###### Ex.
+
+ HTML file | Header file | Header variable
+------|--------|--------|---------
+ html/index.html | index.h | INDEX 
+ 
+###### Use
+
+In order to use it, you can simple do this command:
+
+```
+	$ pip install -r requirements.txt
+	$ python html_to_header.py
+	Create arduino/WifiWebServer/index.h 
+```
 
 ### What you need
 
@@ -78,6 +99,7 @@ HTTP server started
  - [DFR0299 datasheet 1](http://www.picaxe.com/docs/spe033.pdf)
  - [DFR0299 datasheet 2](http://www.trainelectronics.com/Arduino/MP3Sound/TalkingTemperature/FN-M16P%20Embedded%20MP3%20Audio%20Module%20Datasheet.pdf)
  - [DFR0299 doc](http://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299)
+ - [ESP-12e datasheet](https://mintbox.in/media/esp-12e.pdf)
  - [ESP8266 Bootloader Modes](https://zoetrope.io/tech-blog/esp8266-bootloader-modes-and-gpio-state-startup)
  - [DFPlayer-Mini-mp3 library](https://github.com/DFRobot/DFPlayer-Mini-mp3/archive/master.zip)
  - [DFPlayer-Mini-mp3 library (my version)](https://github.com/ciotto/DFPlayer-Mini-mp3/archive/master.zip)
