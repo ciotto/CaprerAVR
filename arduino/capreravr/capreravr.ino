@@ -166,9 +166,19 @@ void setup() {
 
   // Set default mode
   set_mode(DEFAULT_MODE);
+  delay(100);
+
+  // Reset buffers
+  while (wiFiSerial.available()) {
+    wiFiSerial.read();
+    delay(10);
+  }
+  while (Serial.available()) {
+    Serial.read();
+    delay(10);
+  }
 
   // Blink LEDs
-  delay(100);
   set_leds(B1111);
   delay(500);
   set_leds(B0000);
