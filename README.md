@@ -95,11 +95,9 @@ In order to use it, you can simple do this command:
  - *1 x* [Serial adapter](https://it.aliexpress.com/item/3-3V-5V-FTDI-Basic-Program-Downloader-USB-to-TTL-FT232RL-For-Arduino/32409683938.html?spm=2114.13010608.0.0.WA7239)
  
 ## Links
-
  - [DFR0299 datasheet 1](http://www.picaxe.com/docs/spe033.pdf)
  - [DFR0299 datasheet 2](http://www.trainelectronics.com/Arduino/MP3Sound/TalkingTemperature/FN-M16P%20Embedded%20MP3%20Audio%20Module%20Datasheet.pdf)
  - [DFR0299 doc](http://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299)
  - [ESP-12e datasheet](https://mintbox.in/media/esp-12e.pdf)
  - [ESP8266 Bootloader Modes](https://zoetrope.io/tech-blog/esp8266-bootloader-modes-and-gpio-state-startup)
- - [DFPlayer-Mini-mp3 library](https://github.com/DFRobot/DFPlayer-Mini-mp3/archive/master.zip)
- - [DFPlayer-Mini-mp3 library (my version)](https://github.com/ciotto/DFPlayer-Mini-mp3/archive/master.zip)
+ - [DFRobotDFPlayerMini library](https://github.com/DFRobot/DFRobotDFPlayerMini/archive/1.0.1.zip)

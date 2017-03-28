@@ -1,3 +1,4 @@
+#include <DFRobotDFPlayerMini.h>
 
 #ifndef CaprerAVR
 #define CaprerAVR

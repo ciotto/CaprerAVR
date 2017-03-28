@@ -19,39 +19,19 @@
   by Ciotto <http://ci8.it>
   
   DFPlayer library are available here:
-    https://github.com/Arduinolibrary/DFRobot_Mini_Player/raw/master/DFPlayer_Mini_mp3.zip
+    https://github.com/DFRobot/DFRobotDFPlayerMini/archive/1.0.1.zip
   
-    Methods:
-      mp3_play ();     //start play
-      mp3_play (5);    //play "mp3/0005.mp3"
-      mp3_next ();     //play next 
-      mp3_prev ();     //play previous
-      mp3_set_volume (uint16_t volume);    //0~30
-      mp3_set_EQ ();   //0~5
-      mp3_pause ();
-      mp3_stop ();
-      void mp3_get_state ();   //send get state command
-      void mp3_get_volume (); 
-      void mp3_get_u_sum (); 
-      void mp3_get_tf_sum (); 
-      void mp3_get_flash_sum (); 
-      void mp3_get_tf_current (); 
-      void mp3_get_u_current (); 
-      void mp3_get_flash_current (); 
-      void mp3_single_loop (boolean state);    //set single loop 
-      void mp3_DAC (boolean state); 
-      void mp3_random_play (); 
- 
  https://github.com/ciotto/CaprerAVR
  */
 
 #include <SoftwareSerial.h>
-#include <DFPlayer_Mini_Mp3.h>
 #include "capreravr.h"
 #include "CapreraUtilities.h"
 
 SoftwareSerial mp3Serial(MP3_SERIAL_RX, MP3_SERIAL_TX);
 SoftwareSerial wiFiSerial(WIFI_SERIAL_RX, WIFI_SERIAL_TX);
+
+DFRobotDFPlayerMini mp3;
 
 // variables
 byte currentState = 0;                       // variable for storing the command/state
@@ -69,15 +49,17 @@ int number_of_set_bits(int state) {
      return (((state + (state >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
-void play_folder (int folder) {
-  int track = random(1, tracks[folder - 1] + 1);
+void play_folder (int folder, int track) {
+  if (track <= 0) {
+    track = random(1, tracks[folder - 1] + 1);
+  }
   
   Serial.print("Play track ");
   Serial.print(track);
   Serial.print(" in folder ");
   Serial.println(folder);
   
-  mp3_play_file_in_folder(folder, track);
+  mp3.playLargeFolder(folder, track);
   
   // set LEDs state
   set_leds(BUTTONS[folder - 1]);
@@ -87,7 +69,7 @@ void stop () {
   Serial.println("Stop");
       
   // stop
-  mp3_stop();
+  mp3.pause();
 
   // set LEDs state
   set_leds(0);
@@ -97,7 +79,7 @@ void set_mode (int m) {
   mode = m;
   
   // Play mode sound
-  mp3_play_file_in_folder(MODE_FOLDER, mode);
+  mp3.playLargeFolder(MODE_FOLDER, mode);
   
   Serial.print("Select mode ");
   Serial.println(mode, BIN);
@@ -108,7 +90,7 @@ void set_volume(int v) {
   Serial.println(v);
   
   // Set volume (value 0~30)
-  mp3_set_volume(v);
+  mp3.volume(v);
 }
 
 int set_leds (int state) {
@@ -134,27 +116,25 @@ void setup() {
   mp3Serial.begin (9600);
   wiFiSerial.begin (9600);
 
+  mp3Serial.listen();
+
   Serial.println("Starting CaprerAVR...\n");
 
-  mp3Serial.listen();
-  // Set Serial for DFPlayer-mini mp3 module
-  mp3_set_serial(mp3Serial);
-  // Set logging Serial
-  mp3_set_debug_serial(Serial);
-  // Set volume (value 0~30)
-  mp3_set_volume(volume);
-  // Set device to microSD
-  mp3_set_device(2);
-  
+  while (!mp3.begin(mp3Serial)) {
+    Serial.println("Unable to begin DFPlayer Mini");
+    delay(1000);
+  }
+  Serial.println("DFPlayer Mini online.");
+
   for (int i=0; i < BUTTONS_COUNT; i++) {
     // initialize the LED pin as an output:
     pinMode(LEDS_PIN[i], OUTPUT);
+
     // initialize the buzz button pin as an input:
     pinMode(BUTTONS_PIN[i], INPUT);
-    
+
     // Query the total number of microSD card files
-    mp3_get_folder_sum(i + 1);
-    tracks[i] = mp3_wait_folder_sum();
+    tracks[i] = mp3.readFileCountsInFolder(i + 1);
 
     Serial.print("Find ");
     Serial.print(tracks[i]);
@@ -162,6 +142,10 @@ void setup() {
     Serial.print(i + 1);
     Serial.println(".");
   }
+
+  // Set volume (value 0~30)
+  set_volume(volume);
+
   wiFiSerial.listen();
 
   // Set default mode
@@ -254,25 +238,25 @@ void loop() {
       //   X  O
       //   O  O
       if (currentState == BUTTON1) {
-        play_folder(1);
+        play_folder(1, currentParameters);
         
       // Button 2 pressed
       //   O  X
       //   O  O
       } else if (currentState == BUTTON2) {
-        play_folder(2);
+        play_folder(2, currentParameters);
         
       // Button 3 pressed
       //   O  O
       //   X  O
       } else if (currentState == BUTTON3) {
-        play_folder(3);
+        play_folder(3, currentParameters);
 
       // Button 4 pressed
       //   O  O
       //   O  X
       } else {
-        play_folder(4);
+        play_folder(4, currentParameters);
       }
     
     // Stop if playing
@@ -294,7 +278,7 @@ void loop() {
     
       set_volume(volume);
       if (newBusyState == !MP3_BUSY) {
-        mp3_play_file_in_folder(SOUND_FOLDER, VOLUME_SOUND);
+        mp3.playLargeFolder(SOUND_FOLDER, VOLUME_SOUND);
       }
 
     // Volume DOWN
@@ -307,7 +291,7 @@ void loop() {
     
       set_volume(volume);
       if (newBusyState == !MP3_BUSY) {
-        mp3_play_file_in_folder(SOUND_FOLDER, VOLUME_SOUND);
+        mp3.playLargeFolder(SOUND_FOLDER, VOLUME_SOUND);
       }
 
     // Change mode
