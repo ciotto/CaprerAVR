@@ -38,6 +38,7 @@ const byte DEFAULT_MODE = MODE2;
 // Other commands
 const byte VOLUME_UP = BUTTON1 + BUTTON3 + BUTTON2;
 const byte VOLUME_DOWN = BUTTON1 + BUTTON3 + BUTTON4;
+const byte CHANGE_DEVICE = BUTTON2 + BUTTON4;
 
 
 const byte BUTTONS_PIN[BUTTONS_COUNT] = {2, 3, 4, 5};       // the number of the buzz buttons pin
@@ -55,6 +56,8 @@ const byte WIFI_SERIAL_RX = 18;
 // Serial commands
 const byte COMMANDS_ARGUMENT_LENGTH = 8;
 const byte COMMANDS_SIZE = COMMANDS_ARGUMENT_LENGTH + BUTTONS_COUNT;
+
+const uint16_t DEFAULT_DEVICE = DFPLAYER_DEVICE_SD;
 
 #endif
 

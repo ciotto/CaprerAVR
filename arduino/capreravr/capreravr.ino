@@ -36,6 +36,7 @@ DFRobotDFPlayerMini mp3;
 // variables
 byte currentState = 0;                       // variable for storing the command/state
 byte currentParameters = 0;                  // variable for storing extra data
+uint16_t currentDevice = 0;                  // variable for storing current device (USB/FLASH)
 boolean currentBusyState = !MP3_BUSY;
 byte ledsState = 0;                          // variable for storing the LEDs status
 byte tracks[BUTTONS_COUNT] = {0, 0, 0, 0};   // tracks in microSD
@@ -108,6 +109,26 @@ int set_leds (int state) {
   }
 }
 
+void setup_device(uint16_t device) {
+  Serial.print("Setup device ");
+  Serial.print(device);
+  Serial.println(".");
+  
+  currentDevice = device;
+  mp3.outputDevice(device);
+
+  for (int i=0; i < BUTTONS_COUNT; i++) {
+    // Query the total number of microSD card files
+    tracks[i] = mp3.readFileCountsInFolder(i + 1);
+
+    Serial.print("Find ");
+    Serial.print(tracks[i]);
+    Serial.print(" tracks in folder 0");
+    Serial.print(i + 1);
+    Serial.println(".");
+  }
+}
+
 void clean_buffers() {
   while (wiFiSerial.available()) {
     wiFiSerial.read();
@@ -143,19 +164,12 @@ void setup() {
 
     // initialize the buzz button pin as an input:
     pinMode(BUTTONS_PIN[i], INPUT);
-
-    // Query the total number of microSD card files
-    tracks[i] = mp3.readFileCountsInFolder(i + 1);
-
-    Serial.print("Find ");
-    Serial.print(tracks[i]);
-    Serial.print(" tracks in folder 0");
-    Serial.print(i + 1);
-    Serial.println(".");
   }
 
   // Set volume (value 0~30)
   set_volume(volume);
+  // Set device to microSD
+  setup_device(DEFAULT_DEVICE);
 
   wiFiSerial.listen();
 
@@ -273,10 +287,20 @@ void loop() {
     
   // More that one button pressed (special controls)
   } else if (bitsCount > 1) {
+    // Change device
+    //   O  X
+    //   O  X
+    if (currentState == CHANGE_DEVICE) {
+      if (currentDevice == DFPLAYER_DEVICE_SD) {
+        setup_device(DFPLAYER_DEVICE_U_DISK);
+      } else {
+        setup_device(DFPLAYER_DEVICE_SD);
+      }
+
     // Volume UP
     //   X  X
     //   X  O
-    if (currentState == VOLUME_UP) {
+    } else if (currentState == VOLUME_UP) {
       if (volume < 30) {
         volume++;
       }
