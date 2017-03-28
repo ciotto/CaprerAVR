@@ -108,6 +108,17 @@ int set_leds (int state) {
   }
 }
 
+void clean_buffers() {
+  while (wiFiSerial.available()) {
+    wiFiSerial.read();
+    delay(10);
+  }
+  while (Serial.available()) {
+    Serial.read();
+    delay(10);
+  }
+}
+
 void setup() {
   // Init serial
   Serial.begin (9600);
@@ -153,14 +164,7 @@ void setup() {
   delay(100);
 
   // Reset buffers
-  while (wiFiSerial.available()) {
-    wiFiSerial.read();
-    delay(10);
-  }
-  while (Serial.available()) {
-    Serial.read();
-    delay(10);
-  }
+  clean_buffers();
 
   // Blink LEDs
   set_leds(B1111);
@@ -196,6 +200,7 @@ void loop() {
     Serial.print("WiFi command received: ");
     Serial.println(buffer);
   } 
+  clean_buffers();
 
   serialCommand = bitString2Int(buffer, COMMANDS_SIZE + 1);
   serialParameters = serialCommand >> 4;
