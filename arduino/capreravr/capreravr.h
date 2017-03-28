@@ -53,7 +53,7 @@ const byte WIFI_SERIAL_TX = 19;
 const byte WIFI_SERIAL_RX = 18;
 
 // Serial commands
-const byte COMMANDS_ARGUMENT_LENGTH = 4;
+const byte COMMANDS_ARGUMENT_LENGTH = 8;
 const byte COMMANDS_SIZE = COMMANDS_ARGUMENT_LENGTH + BUTTONS_COUNT;
 
 #endif

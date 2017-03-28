@@ -17,18 +17,23 @@ const int LED_PIN = 13;
 
 boolean handleCommands() {
   int command = 0;
+  int track = 0;
+  if (!server.arg("track").equals("")) {
+    track = server.arg("track").toInt();
+  }
+
   if (server.arg("volume").equals("up")) {
     command = VOLUME_UP;
   }else if (server.arg("volume").equals("down")) {
     command = VOLUME_DOWN;
   }else if (server.arg("button").equals("1")) {
-    command = BUTTON1;
+    command = BUTTON1 | (track << 4);
   }else if (server.arg("button").equals("2")) {
-    command = BUTTON2;
+    command = BUTTON2 | (track << 4);
   }else if (server.arg("button").equals("3")) {
-    command = BUTTON3;
+    command = BUTTON3 | (track << 4);
   }else if (server.arg("button").equals("4")) {
-    command = BUTTON4;
+    command = BUTTON4 | (track << 4);
   }else if (server.arg("mode").equals("1")) {
     command = MODE_SWITCH | (1 << 4);
   }else if (server.arg("mode").equals("2")) {

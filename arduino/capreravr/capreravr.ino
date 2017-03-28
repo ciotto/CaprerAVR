@@ -173,9 +173,9 @@ void loop() {
   boolean newBusyState = digitalRead(BUSY_PIN);
 
   // Read serial command
-  byte serialCommand = 0;
+  int serialCommand = 0;
   byte serialParameters = 0;
-  char buffer[9] = {'0', '0', '0', '0', '0', '0', '0', '0', '\0'};
+  char buffer[13] = {'0', '0', '0', '0','0', '0', '0', '0', '0', '0', '0', '0', '\0'};
 
   if (Serial.available() >= COMMANDS_SIZE) {
     // USB serial
@@ -199,7 +199,7 @@ void loop() {
 
   serialCommand = bitString2Int(buffer, COMMANDS_SIZE + 1);
   serialParameters = serialCommand >> 4;
-  serialCommand &= B00001111;
+  serialCommand &= (B00000000 << 8) | B00001111;
 
   // Read buttons state
   byte buttonsState = 0;
